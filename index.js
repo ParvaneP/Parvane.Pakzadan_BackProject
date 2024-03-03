@@ -126,9 +126,9 @@ app.put('/users/:id', async (request, response) => {
 
 app.delete('/users/:id', (request, response) => {
     const userID = parseInt(request.params.id);
-    console.log("id:" + userID);
+    //console.log("id:" + userID);
     if ((userID != null) && (userID !== undefined)) {
-        console.log("id:: " + userID);
+        //console.log("id: " + userID);
         deleteUser(userID).then((result) => {
             if (result) {
                 console.log(result);
@@ -141,18 +141,18 @@ app.delete('/users/:id', (request, response) => {
 async function getUsers() {
     try {
         let query = await sql`SELECT * FROM "user"`
-        return query
+        return query;
     } catch (e) {
-        console.error(e)
+        console.error(e);
     }
 }
 
 async function getUsersByRole(role) {
     try {
         let query = await sql`SELECT * FROM "user" WHERE role = ${role}`
-        return query
+        return query;
     } catch (e) {
-        console.error(e)
+        console.error(e);
     }
 }
 
@@ -234,7 +234,7 @@ app.get('/classes', async (request, response) => {
         if (result) {
             response.send(result);
         } else {
-            response.send().status("User does not exist or password does not match.");
+            response.send().status("Classes do not exist.");
         }
     } catch (e) {
         response.status(500).send({ message: e.message })
@@ -287,6 +287,47 @@ app.put('/classes/:id', async (request, response) => {
         response.sendStatus(404);
     }
 });
+
+async function getClasses() {
+    try {
+        let result = await sql`SELECT * FROM "class"`
+        return result
+    } catch (e) {
+        console.error(e)
+    }
+}
+
+async function getClassById(classID) {
+    try {
+        const result = await sql`SELECT * FROM "class" C WHERE C.id = ${classID}`;
+        return result[0];
+    } catch (e) {
+        // console.error(e);
+        throw e;
+    }
+}
+
+async function getClassessByUsername(username) {
+    try {
+        const result = await sql`SELECT C.id, C.name, C.type FROM "class" C INNER JOIN "user" U ON U.id = C.organizer_Id WHERE U.email = ${username}`;
+        return result;
+    } catch (e) {
+        // console.error(e);
+        throw e;
+    }
+}
+
+async function updateClass(classID, classDetails) {
+    try {
+        const result = await sql`UPDATE "class" SET
+        name = ${classDetails.name},
+        type = ${classDetails.type}
+        WHERE id = ${classID}`;
+        return result;
+    } catch (e) {
+        console.error(e);
+    }
+}
 
 // Participants
 app.get('/participants', async (request, response) => {
@@ -351,35 +392,6 @@ async function getParticipants() {
     }
 }
 
-async function getClasses() {
-    try {
-        let result = await sql`SELECT * FROM "class"`
-        return result
-    } catch (e) {
-        console.error(e)
-    }
-}
-
-async function getClassById(classID) {
-    try {
-        const result = await sql`SELECT * FROM "class" C WHERE C.id = ${classID}`;
-        return result[0];
-    } catch (e) {
-        // console.error(e);
-        throw e;
-    }
-}
-
-async function getClassessByUsername(username) {
-    try {
-        const result = await sql`SELECT C.id, C.name, C.type FROM "class" C INNER JOIN "user" U ON U.id = C.organizer_Id WHERE U.email = ${username}`;
-        return result;
-    } catch (e) {
-        // console.error(e);
-        throw e;
-    }
-}
-
 async function getParticipantIdsByClassId(classID) {
     try {
         const result = await sql`SELECT * FROM "class_participant" WHERE class_id = ${classID}`;
@@ -397,18 +409,6 @@ async function getParticipantById(participantId) {
     } catch (e) {
         // console.error(e);
         throw e;
-    }
-}
-
-async function updateClass(classID, classDetails) {
-    try {
-        const result = await sql`UPDATE "class" SET
-        name = ${classDetails.name},
-        type = ${classDetails.type}
-        WHERE id = ${classID}`;
-        return result;
-    } catch (e) {
-        console.error(e);
     }
 }
 
