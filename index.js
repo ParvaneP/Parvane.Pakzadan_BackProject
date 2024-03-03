@@ -249,24 +249,18 @@ app.get('/classes/:id', async (request, response) => {
         const classID = parseInt(request.params.id);
         if ((classID != null) && (classID !== undefined)) {
             const result = await getClassById(classID);
-            const participantIds = await getParticipantIdsByClassId(classID);
+            const participants = await getParticipantsByClassId(classID);
             if (result) {
                 if (result.organizer_id) {
                     user = await getUser(Number(result.organizer_id));
                 }
-                if (Boolean(participantIds.length)) {
-                    participantIds.forEach(async item => {
-                        let participantResult = await getParticipantById(Number(item.participant_id));
-                        participantList.push(participantResult);
-                    });
-                }
-
+    
                 response.send({
                     id: result.id,
                     name: result.name,
                     type: result.type,
                     organizer: user,
-                    participant: participantList,
+                    participant: participants,
                 });
             }
         } else {
@@ -392,9 +386,9 @@ async function getParticipants() {
     }
 }
 
-async function getParticipantIdsByClassId(classID) {
+async function getParticipantsByClassId(classID) {
     try {
-        const result = await sql`SELECT * FROM "class_participant" WHERE class_id = ${classID}`;
+        const result = await sql`SELECT P.* FROM participant P INNER JOIN class_participant CP ON CP.participant_id = P.id WHERE CP.class_id = ${classID}`;
         return result;
     } catch (e) {
         // console.error(e);
